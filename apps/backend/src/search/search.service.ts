@@ -174,13 +174,16 @@ export class SearchService {
     const projectMatches = this.verificationService
       .listProjects()
       .filter((project) =>
-        mentions.some((mention) => project.name.toLowerCase().includes(mention)),
+        mentions.some((mention) =>
+          project.name.toLowerCase().includes(mention),
+        ),
       )
       .slice(0, limitPerType)
       .map((project) => {
         const matchedMention =
-          mentions.find((mention) => project.name.toLowerCase().includes(mention)) ??
-          project.name.toLowerCase();
+          mentions.find((mention) =>
+            project.name.toLowerCase().includes(mention),
+          ) ?? project.name.toLowerCase();
         return {
           projectId: project.projectId,
           name: project.name,
@@ -327,7 +330,9 @@ export class SearchService {
   private async fetchEcosystemByMentions(
     mentions: string[],
     limit: number,
-  ): Promise<Array<{ kind: 'tag' | 'category'; value: string; matchedMention: string }>> {
+  ): Promise<
+    Array<{ kind: 'tag' | 'category'; value: string; matchedMention: string }>
+  > {
     if (mentions.length === 0) return [];
 
     const params = [...mentions, limit];
@@ -361,15 +366,40 @@ export class SearchService {
       LIMIT ${limitParam};
     `;
 
-    const rows = (await this.newsRepository.query(sql, params)) as Array<{
-      kind: 'tag' | 'category';
-      value: string;
-    }>;
+    const rawRows: unknown = await this.newsRepository.query(sql, params);
+    const rows = this.asEcosystemRows(rawRows);
 
     return rows.map((row) => ({
       kind: row.kind,
       value: row.value,
       matchedMention: row.value,
     }));
+  }
+
+  private asEcosystemRows(
+    value: unknown,
+  ): Array<{ kind: 'tag' | 'category'; value: string }> {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.flatMap((row) => {
+      if (!row || typeof row !== 'object') {
+        return [];
+      }
+
+      const record = row as Record<string, unknown>;
+      const kind = record.kind;
+      const rowValue = record.value;
+
+      if (
+        (kind === 'tag' || kind === 'category') &&
+        typeof rowValue === 'string'
+      ) {
+        return [{ kind, value: rowValue }];
+      }
+
+      return [];
+    });
   }
 }
