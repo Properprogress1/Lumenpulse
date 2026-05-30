@@ -4,9 +4,10 @@ import stellarConfig from './config/stellar.config';
 import { StellarController } from './stellar.controller';
 import { StellarService } from './stellar.service';
 import { TransactionModule } from '../transaction/transaction.module';
+import { AppCacheModule } from '../cache/cache.module';
 
 @Module({
-  imports: [ConfigModule.forFeature(stellarConfig), TransactionModule],
+  imports: [ConfigModule.forFeature(stellarConfig), TransactionModule, AppCacheModule],
   controllers: [StellarController],
   providers: [StellarService],
   exports: [StellarService],

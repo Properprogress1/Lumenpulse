@@ -364,6 +364,8 @@ const envSchema = z
     STELLAR_RETRY_ATTEMPTS: z.coerce.number().int().min(0).default(3),
     STELLAR_RETRY_DELAY: z.coerce.number().int().min(0).default(1_000),
     STELLAR_SERVER_SECRET: z.string().min(1), // SECRET — never log
+    STELLAR_BALANCE_CACHE_TTL: z.coerce.number().int().min(1).default(30_000),
+    STELLAR_OPERATIONS_CACHE_TTL: z.coerce.number().int().min(1).default(15_000),
 
     // Soroban contract addresses (optional — null when not yet deployed)
     STELLAR_CONTRACT_LUMEN_TOKEN: z.string().trim().optional(),
@@ -790,26 +792,28 @@ export const config = Object.freeze({
     port: parsedEnv.REDIS_PORT,
     url: parsedEnv.REDIS_URL,
   }),
-  stellar: Object.freeze({
-    network: parsedEnv.STELLAR_NETWORK,
-    horizonUrl:
-      parsedEnv.STELLAR_HORIZON_URL ||
-      defaultHorizonUrls[parsedEnv.STELLAR_NETWORK],
-    sorobanRpcUrl: parsedEnv.STELLAR_SOROBAN_RPC_URL ?? null,
-    timeout: parsedEnv.STELLAR_TIMEOUT,
-    retryAttempts: parsedEnv.STELLAR_RETRY_ATTEMPTS,
-    retryDelay: parsedEnv.STELLAR_RETRY_DELAY,
-    serverSecret: new SecretString(parsedEnv.STELLAR_SERVER_SECRET),
-    contracts: Object.freeze({
-      lumenToken: parsedEnv.STELLAR_CONTRACT_LUMEN_TOKEN ?? null,
-      crowdfundVault: parsedEnv.STELLAR_CONTRACT_CROWDFUND_VAULT ?? null,
-      projectRegistry: parsedEnv.STELLAR_CONTRACT_PROJECT_REGISTRY ?? null,
-      contributorRegistry:
-        parsedEnv.STELLAR_CONTRACT_CONTRIBUTOR_REGISTRY ?? null,
-      matchingPool: parsedEnv.STELLAR_CONTRACT_MATCHING_POOL ?? null,
-      treasury: parsedEnv.STELLAR_CONTRACT_TREASURY ?? null,
-    }),
-  }),
+   stellar: Object.freeze({
+     network: parsedEnv.STELLAR_NETWORK,
+     horizonUrl:
+       parsedEnv.STELLAR_HORIZON_URL ||
+       defaultHorizonUrls[parsedEnv.STELLAR_NETWORK],
+     sorobanRpcUrl: parsedEnv.STELLAR_SOROBAN_RPC_URL ?? null,
+     timeout: parsedEnv.STELLAR_TIMEOUT,
+     retryAttempts: parsedEnv.STELLAR_RETRY_ATTEMPTS,
+     retryDelay: parsedEnv.STELLAR_RETRY_DELAY,
+     balanceCacheTTL: parsedEnv.STELLAR_BALANCE_CACHE_TTL,
+     operationsCacheTTL: parsedEnv.STELLAR_OPERATIONS_CACHE_TTL,
+     serverSecret: new SecretString(parsedEnv.STELLAR_SERVER_SECRET),
+     contracts: Object.freeze({
+       lumenToken: parsedEnv.STELLAR_CONTRACT_LUMEN_TOKEN ?? null,
+       crowdfundVault: parsedEnv.STELLAR_CONTRACT_CROWDFUND_VAULT ?? null,
+       projectRegistry: parsedEnv.STELLAR_CONTRACT_PROJECT_REGISTRY ?? null,
+       contributorRegistry:
+         parsedEnv.STELLAR_CONTRACT_CONTRIBUTOR_REGISTRY ?? null,
+       matchingPool: parsedEnv.STELLAR_CONTRACT_MATCHING_POOL ?? null,
+       treasury: parsedEnv.STELLAR_CONTRACT_TREASURY ?? null,
+     }),
+   }),
   auth: Object.freeze({
     jwtSecret: new SecretString(parsedEnv.JWT_SECRET),
     jwtExpiresIn: parsedEnv.JWT_EXPIRES_IN,
