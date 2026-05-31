@@ -7,7 +7,11 @@ import { TransactionModule } from '../transaction/transaction.module';
 import { AppCacheModule } from '../cache/cache.module';
 
 @Module({
-  imports: [ConfigModule.forFeature(stellarConfig), TransactionModule, AppCacheModule],
+  imports: [
+    ConfigModule.forFeature(stellarConfig),
+    TransactionModule,
+    AppCacheModule,
+  ],
   controllers: [StellarController],
   providers: [StellarService],
   exports: [StellarService],

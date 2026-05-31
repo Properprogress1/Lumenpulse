@@ -87,10 +87,14 @@ export class TransactionService {
       this.configService.get('USE_MOCK_TRANSACTIONS', 'true') === 'true';
 
     this.cacheService.setCacheConfig({
-      balanceCacheTTL:
-        this.configService.get<number>('STELLAR_BALANCE_CACHE_TTL', 30_000),
-      operationsCacheTTL:
-        this.configService.get<number>('STELLAR_OPERATIONS_CACHE_TTL', 15_000),
+      balanceCacheTTL: this.configService.get<number>(
+        'STELLAR_BALANCE_CACHE_TTL',
+        30_000,
+      ),
+      operationsCacheTTL: this.configService.get<number>(
+        'STELLAR_OPERATIONS_CACHE_TTL',
+        15_000,
+      ),
     });
 
     if (this.useMockData) {

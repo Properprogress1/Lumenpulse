@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { ConfigService } from '@nestjs/config';
 import stellarConfig from './config/stellar.config';
 import { StellarService } from './stellar.service';
 import { CacheService } from '../cache/cache.service';
-import { NotFoundError, NetworkError } from '@stellar/stellar-sdk';
-import { InvalidPublicKeyException } from './exceptions/stellar.exceptions';
+import { NotFoundError } from '@stellar/stellar-sdk';
+import { AccountNotFoundException } from './exceptions/stellar.exceptions';
 
 const mockCache = {
   get: jest.fn(),
@@ -26,15 +25,19 @@ const mockServer = {
   root: jest.fn(),
 };
 
-jest.mock('@stellar/stellar-sdk', () => ({
-  ...jest.requireActual('@stellar/stellar-sdk'),
-  Horizon: {
-    Server: jest.fn().mockImplementation(() => mockServer),
-  },
-  StrKey: {
-    isValidEd25519PublicKey: jest.fn().mockReturnValue(true),
-  },
-}));
+jest.mock('@stellar/stellar-sdk', () => {
+  const actual = jest.requireActual('@stellar/stellar-sdk');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return {
+    ...actual,
+    Horizon: {
+      Server: jest.fn().mockImplementation(() => mockServer),
+    },
+    StrKey: {
+      isValidEd25519PublicKey: jest.fn().mockReturnValue(true),
+    },
+  };
+});
 
 describe('StellarService', () => {
   let service: StellarService;
@@ -87,28 +90,32 @@ describe('StellarService', () => {
 
   describe('validatePublicKey', () => {
     it('validates a correct public key', () => {
-      const result = service.validatePublicKey('GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN');
+      const result = service.validatePublicKey(
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      );
       expect(result).toBe(true);
     });
   });
 
   describe('getAccountBalances', () => {
     it('uses cache for account balances', async () => {
-      const publicKey = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+      const publicKey =
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
       const mockCachedResult = {
         publicKey,
         balances: [{ assetType: 'native', balance: '100' }],
       };
 
-      const getAccountBalanceCachedMock = jest
+      (cacheService as any).getAccountBalanceCached = jest
         .fn()
         .mockResolvedValue(mockCachedResult);
-      (cacheService as any).getAccountBalanceCached = getAccountBalanceCachedMock;
 
       const result = await service.getAccountBalances(publicKey);
 
       expect(result).toEqual(mockCachedResult);
-      expect(getAccountBalanceCachedMock).toHaveBeenCalledWith(publicKey, expect.any(Function));
+      expect(
+        (cacheService as any).getAccountBalanceCached,
+      ).toHaveBeenCalledWith(publicKey, expect.any(Function));
     });
   });
 
@@ -119,35 +126,33 @@ describe('StellarService', () => {
         sequenceNumber: () => '123',
       });
 
-      const result = await service.accountExists('GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN');
+      const result = await service.accountExists(
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      );
       expect(result).toBe(true);
     });
 
     it('returns false when account not found', async () => {
-      mockServer.loadAccount.mockRejectedValue(new NotFoundError('Not found'));
+      mockServer.loadAccount.mockRejectedValue(
+        new NotFoundError('Not found', 'test-operation'),
+      );
 
-      const result = await service.accountExists('GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN');
+      const result = await service.accountExists(
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      );
       expect(result).toBe(false);
     });
   });
 
   describe('getAccountInfo', () => {
     it('returns null for account not found', async () => {
-      const getAccountBalanceCachedMock = jest
+      (cacheService as any).getAccountBalanceCached = jest
         .fn()
-        .mockImplementation(async (_publicKey: string, fetcher: () => Promise<any>) => {
-          try {
-            return await fetcher();
-          } catch (error) {
-            if (error instanceof NotFoundError) {
-              return null;
-            }
-            throw error;
-          }
-        });
-      (cacheService as any).getAccountBalanceCached = getAccountBalanceCachedMock;
+        .mockRejectedValue(new AccountNotFoundException('invalid-key'));
 
-      const result = await service.getAccountInfo('invalid-key');
+      const result = await service.getAccountInfo(
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      );
       expect(result).toBeNull();
     });
   });

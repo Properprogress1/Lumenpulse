@@ -47,7 +47,9 @@ describe('CacheService', () => {
 
   describe('getAccountBalanceKey', () => {
     it('generates correct cache key for account balances', () => {
-      const key = service.getAccountBalanceKey('GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN');
+      const key = service.getAccountBalanceKey(
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      );
       expect(key).toBe(
         `${STELLAR_ACCOUNT_BALANCE_PREFIX}:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`,
       );
@@ -99,7 +101,8 @@ describe('CacheService', () => {
 
   describe('getAccountBalanceCached', () => {
     it('uses correct key and TTL for account balance caching', async () => {
-      const publicKey = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+      const publicKey =
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
       const cachedResult = { balances: [], publicKey };
       mockCacheManager.get.mockResolvedValue(undefined);
       mockCacheManager.set.mockResolvedValue(undefined);
@@ -118,7 +121,8 @@ describe('CacheService', () => {
 
   describe('getAccountOperationsCached', () => {
     it('uses correct key and TTL for account operations caching', async () => {
-      const publicKey = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+      const publicKey =
+        'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
       const cachedResult = { transactions: [], nextPage: undefined };
       mockCacheManager.get.mockResolvedValue(undefined);
       mockCacheManager.set.mockResolvedValue(undefined);

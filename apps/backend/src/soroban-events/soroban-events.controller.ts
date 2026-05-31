@@ -65,7 +65,8 @@ export class SorobanEventsController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Bad request - Invalid event data (missing txHash, invalid eventIndex, etc.)',
+    description:
+      'Bad request - Invalid event data (missing txHash, invalid eventIndex, etc.)',
   })
   async ingest(
     @Headers('x-ingest-secret') secret: string,

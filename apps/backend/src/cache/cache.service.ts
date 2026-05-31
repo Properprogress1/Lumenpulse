@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import type { Cache } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 export const NEWS_CACHE_KEY = 'news:latest';
 export const STELLAR_ASSETS_CACHE_PREFIX = 'stellar:assets';
@@ -95,9 +95,17 @@ export class CacheService {
 
   async invalidateAccountOperations(publicKey: string): Promise<void> {
     try {
-      const keys = await this.cacheManager.store.client?.keys?.(
-        `${STELLAR_ACCOUNT_OPERATIONS_PREFIX}:${publicKey}:*`,
-      );
+      // Access Redis client via store for pattern-based key deletion
+      interface RedisClient {
+        keys: (pattern: string) => Promise<string[]>;
+      }
+      const store = (this.cacheManager as { store?: { client?: RedisClient } })
+        .store;
+      const keys = store?.client
+        ? await store.client.keys(
+            `${STELLAR_ACCOUNT_OPERATIONS_PREFIX}:${publicKey}:*`,
+          )
+        : [];
       if (keys && Array.isArray(keys)) {
         for (const key of keys) {
           await this.cacheManager.del(key);

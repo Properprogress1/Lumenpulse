@@ -97,28 +97,29 @@ export class StellarService {
     }
   }
 
-/**
-    * Fetches account balances from Stellar Horizon API
-    *
-    * @param publicKey - Stellar account public key (must be valid Ed25519 public key)
-    * @returns Promise<AccountBalancesDto> - Account balances information
-    * @throws AccountNotFoundException if account is not found (404)
-    * @throws HorizonUnavailableException if Horizon API is unavailable
-    * @throws InvalidPublicKeyException if public key format is invalid
-    */
-   async getAccountBalances(publicKey: string): Promise<AccountBalancesDto> {
+  /**
+   * Fetches account balances from Stellar Horizon API
+   *
+   * @param publicKey - Stellar account public key (must be valid Ed25519 public key)
+   * @returns Promise<AccountBalancesDto> - Account balances information
+   * @throws AccountNotFoundException if account is not found (404)
+   * @throws HorizonUnavailableException if Horizon API is unavailable
+   * @throws InvalidPublicKeyException if public key format is invalid
+   */
+  async getAccountBalances(publicKey: string): Promise<AccountBalancesDto> {
     // Validate public key format
     validateStellarPublicKey(publicKey);
 
     this.logger.debug(`Fetching balances for account: ${publicKey}`);
 
-    return this.cacheService.getAccountBalanceCached(
-      publicKey,
-      async () => this.fetchAccountBalances(publicKey),
+    return this.cacheService.getAccountBalanceCached(publicKey, async () =>
+      this.fetchAccountBalances(publicKey),
     );
   }
 
-  private async fetchAccountBalances(publicKey: string): Promise<AccountBalancesDto> {
+  private async fetchAccountBalances(
+    publicKey: string,
+  ): Promise<AccountBalancesDto> {
     try {
       // Retry logic for network failures
       const account: Horizon.AccountResponse = await retryWithBackoff(
