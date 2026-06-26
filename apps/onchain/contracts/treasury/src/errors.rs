@@ -14,4 +14,5 @@ pub enum TreasuryError {
     NothingToClaim = 8,
     Reentrancy = 9,
     AlreadyExecuted = 10,
+    SameBeneficiary = 11,
 }
