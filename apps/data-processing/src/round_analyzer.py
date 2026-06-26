@@ -11,12 +11,14 @@ from src.round_anomaly_detector import (
     create_detector,
     AnomalyType,
 )
+from sqlalchemy import select
 from src.db.postgres_service import PostgresService
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from collections import defaultdict
 import os
 import threading
+
 
 logger = setup_logger(__name__)
 

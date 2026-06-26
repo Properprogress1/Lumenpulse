@@ -9,6 +9,7 @@ import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from contextlib import contextmanager
+from collections import defaultdict
 
 from sqlalchemy import create_engine, select, and_, desc, func, delete
 from sqlalchemy.orm import sessionmaker, Session

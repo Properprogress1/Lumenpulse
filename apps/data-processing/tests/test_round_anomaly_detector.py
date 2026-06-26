@@ -271,8 +271,8 @@ class TestRoundAnomalyDetector:
             unique_contributors=10,
             unique_projects=3,
             contributor_distribution={
-                "whale": 3000.0,  # High single contribution
-                f"addr{i}": 222.2 for i in range(9)  # Same amounts
+                "whale": 3000.0,
+                **{f"addr{i}": 222.2 for i in range(9)},
             },
             project_contributions={1: 3000.0, 2: 1000.0, 3: 1000.0},
             project_contributor_counts={
