@@ -55,6 +55,7 @@ export class DeadLetterEventDto {
 
   @ApiProperty({
     type: 'object',
+    additionalProperties: true,
     description: 'Original event payload',
   })
   rawPayload: Record<string, unknown>;
@@ -79,8 +80,7 @@ export class DeadLetterEventDto {
   lastErrorMessage: string | null;
 
   @ApiProperty({
-    type: 'object',
-    isArray: true,
+    type: [DeadLetterErrorHistoryDto],
     description: 'History of all errors encountered',
   })
   errorHistory: DeadLetterErrorHistoryDto[];
