@@ -4,8 +4,14 @@ import { Repository, In } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { TransactionCallback, TransactionCallbackStatus } from './entities/transaction-callback.entity';
-import { RegisterTransactionCallbackDto, TransactionStatusUpdateDto } from './dto/transaction-callback.dto';
+import {
+  TransactionCallback,
+  TransactionCallbackStatus,
+} from './entities/transaction-callback.entity';
+import {
+  RegisterTransactionCallbackDto,
+  TransactionStatusUpdateDto,
+} from './dto/transaction-callback.dto';
 import { SorobanRpcClientService } from '../stellar/services/soroban-rpc-client.service';
 import { WebhookService } from '../webhook/webhook.service';
 
@@ -21,7 +27,9 @@ export class TransactionStatusService {
     private readonly webhookService: WebhookService,
   ) {}
 
-  async registerCallback(dto: RegisterTransactionCallbackDto): Promise<TransactionCallback> {
+  async registerCallback(
+    dto: RegisterTransactionCallbackDto,
+  ): Promise<TransactionCallback> {
     const existing = await this.callbackRepository.findOne({
       where: { transactionHash: dto.transactionHash },
     });
@@ -59,47 +67,66 @@ export class TransactionStatusService {
 
     for (const callback of pendingCallbacks) {
       try {
-        const txResponse = await this.sorobanRpcService.getTransaction(callback.transactionHash);
+        const txResponse = await this.sorobanRpcService.getTransaction(
+          callback.transactionHash,
+        );
         const currentStatus = String(txResponse.status);
-        
+
         if (currentStatus === 'SUCCESS' || currentStatus === 'FAILED') {
-          this.logger.log(`Transaction ${callback.transactionHash} finalized with status ${txResponse.status}`);
-          
+          this.logger.log(
+            `Transaction ${callback.transactionHash} finalized with status ${txResponse.status}`,
+          );
+
           callback.status = TransactionCallbackStatus.FINALIZED;
           if (currentStatus === 'FAILED') {
-            const extendedTx = txResponse as Record<string, unknown>;
-            callback.lastError = JSON.stringify(extendedTx.errorResult ?? 'Unknown error');
+            const errorResult = (txResponse as { errorResult?: unknown })
+              .errorResult;
+            callback.lastError = JSON.stringify(errorResult ?? 'Unknown error');
           }
-          
+
           await this.callbackRepository.save(callback);
           await this.notifyCallback(callback, currentStatus);
         }
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        this.logger.error(`Failed to check status for transaction ${callback.transactionHash}: ${errorMsg}`);
+        const errorMsg =
+          error instanceof Error ? error.message : 'Unknown error';
+        this.logger.error(
+          `Failed to check status for transaction ${callback.transactionHash}: ${errorMsg}`,
+        );
       }
     }
   }
 
   private async retryNotifications() {
     const needingNotification = await this.callbackRepository.find({
-      where: { 
-        status: In([TransactionCallbackStatus.FINALIZED, TransactionCallbackStatus.FAILED_TO_NOTIFY]) 
+      where: {
+        status: In([
+          TransactionCallbackStatus.FINALIZED,
+          TransactionCallbackStatus.FAILED_TO_NOTIFY,
+        ]),
       },
     });
 
     for (const callback of needingNotification) {
       try {
-        const txResponse = await this.sorobanRpcService.getTransaction(callback.transactionHash);
+        const txResponse = await this.sorobanRpcService.getTransaction(
+          callback.transactionHash,
+        );
         await this.notifyCallback(callback, String(txResponse.status));
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        this.logger.error(`Failed to retry notification for ${callback.transactionHash}: ${errorMsg}`);
+        const errorMsg =
+          error instanceof Error ? error.message : 'Unknown error';
+        this.logger.error(
+          `Failed to retry notification for ${callback.transactionHash}: ${errorMsg}`,
+        );
       }
     }
   }
 
-  private async notifyCallback(callback: TransactionCallback, txStatus: string) {
+  private async notifyCallback(
+    callback: TransactionCallback,
+    txStatus: string,
+  ) {
     const payload: TransactionStatusUpdateDto = {
       transactionHash: callback.transactionHash,
       status: txStatus === 'SUCCESS' ? 'SUCCESS' : 'FAILED',
@@ -122,10 +149,14 @@ export class TransactionStatusService {
       callback.status = TransactionCallbackStatus.NOTIFIED;
       callback.retryCount = 0;
       await this.callbackRepository.save(callback);
-      this.logger.log(`Successfully notified callback for ${callback.transactionHash}`);
+      this.logger.log(
+        `Successfully notified callback for ${callback.transactionHash}`,
+      );
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(`Failed to notify callback for ${callback.transactionHash}: ${errorMsg}`);
+      this.logger.error(
+        `Failed to notify callback for ${callback.transactionHash}: ${errorMsg}`,
+      );
       callback.retryCount += 1;
       callback.status = TransactionCallbackStatus.FAILED_TO_NOTIFY;
       callback.lastError = `Notification failed: ${errorMsg}`;

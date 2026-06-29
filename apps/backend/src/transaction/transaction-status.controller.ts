@@ -10,7 +10,9 @@ export class TransactionStatusController {
 
   @Post('callback')
   @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: 'Register a callback URL for transaction status updates' })
+  @ApiOperation({
+    summary: 'Register a callback URL for transaction status updates',
+  })
   @ApiResponse({ status: 202, description: 'Callback registered successfully' })
   async registerCallback(@Body() dto: RegisterTransactionCallbackDto) {
     await this.statusService.registerCallback(dto);
