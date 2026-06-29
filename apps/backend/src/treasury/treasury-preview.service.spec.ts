@@ -6,7 +6,7 @@ import type { RawStreamData } from './treasury-stream.util';
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-const NOW_SECS = 1_735_776_000;
+const _NOW_SECS = 1_735_776_000;
 const START_SECS = 1_735_689_600;
 const DURATION_SECS = 2_592_000; // 30 days
 
