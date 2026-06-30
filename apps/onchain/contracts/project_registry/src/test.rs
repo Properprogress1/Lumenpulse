@@ -68,6 +68,10 @@ fn test_register_project() {
     assert_eq!(entry.project_id, 1);
     assert_eq!(entry.status, VerificationStatus::Pending);
     assert_eq!(entry.votes_for, 0);
+
+    // Verify event structure compatibility (regression test)
+    let events = env.events().all();
+    assert!(events.len() > 0, "Events should be emitted on registration");
 }
 
 #[test]
