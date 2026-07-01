@@ -2776,7 +2776,7 @@ fn test_get_project_storage_summary_nonexistent_project_returns_false() {
     let summary = client.get_project_storage_summary(&999);
 
     assert_eq!(summary.project_id, 999);
-    assert_eq!(summary.project_exists, false);
+    assert!(!summary.project_exists);
     assert_eq!(summary.contributor_count, 0);
     assert_eq!(summary.refund_receipt_count, 0);
     assert_eq!(summary.total_projects, 0);
@@ -2805,7 +2805,7 @@ fn test_get_project_storage_summary_existing_project_returns_correct_counts() {
     let summary = client.get_project_storage_summary(&project_id);
 
     assert_eq!(summary.project_id, project_id);
-    assert_eq!(summary.project_exists, true);
+    assert!(summary.project_exists);
     assert_eq!(summary.contributor_count, 1);
     assert_eq!(summary.refund_receipt_count, 0);
     assert!(summary.total_projects > 0);
