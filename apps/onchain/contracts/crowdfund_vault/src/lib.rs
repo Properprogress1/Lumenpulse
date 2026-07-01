@@ -16,10 +16,8 @@ use soroban_sdk::token::TokenClient;
 use soroban_sdk::xdr::ToXdr;
 use soroban_sdk::{contract, contractimpl, vec, Address, BytesN, Env, Symbol, Vec};
 use storage::{
-    DataKey, MilestoneDispute, ProjectData, ProjectStorageSummary, ProtocolStats, LEDGER_BUMP,
-    DataKey, MilestoneDispute, ProjectData, ProjectStorageSummary, ProtocolStats, LEDGER_BUMP, LEDGER_THRESHOLD,
-    DataKey, MilestoneDispute, ProjectData, ProtocolStats, RefundReceipt, LEDGER_BUMP,
-    LEDGER_THRESHOLD,
+    DataKey, MilestoneDispute, ProjectData, ProjectStorageSummary, ProtocolStats, RefundReceipt,
+    LEDGER_BUMP, LEDGER_THRESHOLD,
 };
 
 const CURRENT_STORAGE_VERSION: u32 = 1;
